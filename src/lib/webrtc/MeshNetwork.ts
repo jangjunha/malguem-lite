@@ -7,14 +7,17 @@ export class MeshNetwork {
   private localStreams: MediaStream[] = [];
   private signaling!: SignalingClient;
   private onRemoteStream: (peerId: string, stream: MediaStream) => void;
+  private onPeerJoined: (peerId: string) => void;
   private onPeerLeft: (peerId: string) => void;
   public myPeerId: string = "";
 
   constructor(
     onRemoteStream: (peerId: string, stream: MediaStream) => void,
+    onPeerJoined: (peerId: string) => void,
     onPeerLeft: (peerId: string) => void,
   ) {
     this.onRemoteStream = onRemoteStream;
+    this.onPeerJoined = onPeerJoined;
     this.onPeerLeft = onPeerLeft;
   }
 
@@ -55,6 +58,7 @@ export class MeshNetwork {
     });
 
     this.peers.set(peerId, peer);
+    this.onPeerJoined(peerId);
     if (initiator) void peer.createOffer();
   }
 

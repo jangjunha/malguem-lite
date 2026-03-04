@@ -39,6 +39,7 @@ export default function App() {
   const [roomId, setRoomId] = useState("");
   const [appState, setAppState] = useState<AppState>("idle");
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+  const [peerCount, setPeerCount] = useState(0);
   const [localScreen, setLocalScreen] = useState<MediaStream | null>(null);
   const { logs, clear } = useLogger();
 
@@ -68,7 +69,12 @@ export default function App() {
           setRemoteStreams((prev) => new Map(prev).set(peerId, stream));
         },
         (peerId) => {
+          console.log(`[app] 피어 입장: ${peerId.slice(0, 8)}`);
+          setPeerCount((n) => n + 1);
+        },
+        (peerId) => {
           console.log(`[app] 피어 퇴장: ${peerId.slice(0, 8)}`);
+          setPeerCount((n) => Math.max(0, n - 1));
           setRemoteStreams((prev) => {
             const next = new Map(prev);
             next.delete(peerId);
@@ -81,10 +87,11 @@ export default function App() {
       console.log("[app] 마이크 획득 완료");
 
       localStreamsRef.current = [micStream];
+      mesh.addLocalStream(micStream);  // join 전에 추가해야 초기 offer에 트랙 포함
 
       await mesh.join(roomId);
       console.log(`[app] 입장 완료 (my id: ${mesh.myPeerId.slice(0, 8)})`);
-      mesh.addLocalStream(micStream);
+
 
       meshRef.current = mesh;
       setAppState("joined");
@@ -127,6 +134,7 @@ export default function App() {
     localStreamsRef.current = [];
     setLocalScreen(null);
     setRemoteStreams(new Map());
+    setPeerCount(0);
     setAppState("idle");
   }
 
@@ -153,7 +161,7 @@ export default function App() {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <strong>방: {roomId}</strong>
-            <span>{remoteStreams.size}명 연결됨</span>
+            <span>{peerCount}명 연결됨</span>
             {localScreen ? (
               <button onClick={() => stopScreenShare()}>화면공유 중지</button>
             ) : (
