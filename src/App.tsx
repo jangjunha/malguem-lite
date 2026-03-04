@@ -35,21 +35,33 @@ export default function App() {
       },
     );
 
-    const [micStream, screenStream] = await Promise.all([
-      navigator.mediaDevices.getUserMedia({ audio: true }),
-      navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }),
-    ]);
+    const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    localStreamsRef.current = [micStream, screenStream];
+    localStreamsRef.current = [micStream];
 
     await mesh.join(roomId);
     mesh.addLocalStream(micStream);
-    mesh.addLocalStream(screenStream);
-    await mesh.applyScreenShareEncoding();
 
     meshRef.current = mesh;
-    setLocalScreen(screenStream);
     setAppState("joined");
+  }
+
+  async function startScreenShare() {
+    const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    localStreamsRef.current.push(screenStream);
+    meshRef.current!.addLocalStream(screenStream);
+    await meshRef.current!.applyScreenShareEncoding();
+    setLocalScreen(screenStream);
+
+    screenStream.getVideoTracks()[0].onended = () => {
+      stopScreenShare(screenStream);
+    };
+  }
+
+  function stopScreenShare(stream: MediaStream = localScreen!) {
+    stream.getTracks().forEach((t) => t.stop());
+    localStreamsRef.current = localStreamsRef.current.filter((s) => s !== stream);
+    setLocalScreen(null);
   }
 
   async function leave() {
@@ -86,18 +98,25 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <strong>방: {roomId}</strong>
             <span>{remoteStreams.size}명 연결됨</span>
+            {localScreen ? (
+              <button onClick={() => stopScreenShare()}>화면공유 중지</button>
+            ) : (
+              <button onClick={() => void startScreenShare()}>화면공유 시작</button>
+            )}
             <button onClick={() => void leave()}>퇴장</button>
           </div>
-          <div>
-            <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>내 화면공유</div>
-            <video
-              ref={localVideoRef}
-              autoPlay
-              muted
-              playsInline
-              style={{ width: 320, border: "1px solid #333" }}
-            />
-          </div>
+          {localScreen && (
+            <div>
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>내 화면공유</div>
+              <video
+                ref={localVideoRef}
+                autoPlay
+                muted
+                playsInline
+                style={{ width: 320, border: "1px solid #333" }}
+              />
+            </div>
+          )}
           {[...remoteStreams.entries()].map(([peerId, stream]) => (
             <RemoteVideo key={peerId} peerId={peerId} stream={stream} />
           ))}
