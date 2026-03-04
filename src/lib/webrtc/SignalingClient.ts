@@ -72,7 +72,7 @@ export class SignalingClient {
   }
 
   send(to: string, data: SignalData) {
-    this.channel.send({
+    void this.channel.send({
       type: "broadcast",
       event: "signal",
       payload: { to, from: this.myId, data } satisfies SignalMessage,

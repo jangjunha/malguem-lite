@@ -1,9 +1,6 @@
 // src/lib/webrtc/PeerConnection.ts
 const STUN_CONFIG: RTCConfiguration = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-  ],
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }],
 };
 
 type SignalData = RTCSessionDescriptionInit | RTCIceCandidateInit;
@@ -44,9 +41,9 @@ export class ManagedPeerConnection {
   }
 
   async handleSignal(data: SignalData) {
-    if ('type' in data) {
+    if ("type" in data) {
       await this.pc.setRemoteDescription(data);
-      if (data.type === 'offer') {
+      if (data.type === "offer") {
         const answer = await this.pc.createAnswer();
         await this.pc.setLocalDescription(answer);
         this.onSignal(answer);
@@ -61,15 +58,15 @@ export class ManagedPeerConnection {
   }
 
   async applyScreenShareEncoding() {
-    const sender = this.pc.getSenders().find(s => s.track?.kind === 'video');
+    const sender = this.pc.getSenders().find((s) => s.track?.kind === "video");
     if (!sender) return;
     const params = sender.getParameters();
     if (!params.encodings.length) params.encodings = [{}];
     params.encodings[0] = {
       maxBitrate: 8_000_000,
       maxFramerate: 60,
-      priority: 'high',
-      networkPriority: 'high',
+      priority: "high",
+      networkPriority: "high",
     };
     await sender.setParameters(params);
   }

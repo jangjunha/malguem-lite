@@ -29,7 +29,6 @@
             packages = with pkgs; [
               nodejs_25
               bun
-              pre-commit
             ];
           };
         }

@@ -35,7 +35,7 @@ export class MeshNetwork {
         this.onPeerLeft(peerId);
       },
       onSignal: (from, data) => {
-        this.peers.get(from)?.handleSignal(data);
+        void this.peers.get(from)?.handleSignal(data);
       },
     });
 
@@ -55,7 +55,7 @@ export class MeshNetwork {
     });
 
     this.peers.set(peerId, peer);
-    if (initiator) peer.createOffer();
+    if (initiator) void peer.createOffer();
   }
 
   addLocalStream(stream: MediaStream) {

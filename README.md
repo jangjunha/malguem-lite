@@ -2,6 +2,16 @@
 
 ---
 
+## 개발 환경 세팅
+
+```sh
+nix develop       # devShell 진입 (bun, node, pre-commit 포함)
+bun install       # 의존성 설치
+git config core.hooksPath .githooks  # git 훅 활성화
+```
+
+---
+
 ## 기능 요구사항
 
 **핵심 기능**
