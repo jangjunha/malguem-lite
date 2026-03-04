@@ -32,6 +32,14 @@ export class ManagedPeerConnection {
     this.pc.onconnectionstatechange = () => {
       console.log(`[${this.peerId}] ${this.pc.connectionState}`);
     };
+
+    // 트랙 추가 등으로 renegotiation이 필요할 때 자동으로 새 offer 전송
+    // remoteDescription이 null이면 초기 협상 전이므로 건너뜀 (createOffer()가 별도 호출됨)
+    this.pc.onnegotiationneeded = async () => {
+      if (this.pc.remoteDescription === null) return;
+      if (this.pc.signalingState !== "stable") return;
+      await this.createOffer();
+    };
   }
 
   async createOffer() {

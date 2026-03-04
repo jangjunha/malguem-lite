@@ -47,7 +47,9 @@ export class SignalingClient {
 
     this.channel.on("presence", { event: "leave" }, ({ leftPresences }) => {
       leftPresences.forEach((p) => {
-        this.events.onPeerLeft(p.peerId as string);
+        if (p.peerId !== this.myId) {
+          this.events.onPeerLeft(p.peerId as string);
+        }
       });
     });
 
